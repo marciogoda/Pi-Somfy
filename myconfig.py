@@ -24,6 +24,8 @@ class MyConfig (MyLog):
         self.Longitude = 0
         self.SendRepeat = 1
         self.UseHttps = False
+        self.SSLCert = ""
+        self.SSLKey = ""
         self.HTTPPort = 80
         self.HTTPSPort = 443
         self.RTS_Address = "0x279620"
@@ -50,7 +52,7 @@ class MyConfig (MyLog):
     # -------------------- MyConfig::LoadConfig-----------------------------------
     def LoadConfig(self):
 
-        parameters = {'LogLocation': str, 'Latitude': float, 'Longitude': float, 'SendRepeat': int, 'UseHttps': bool, 'HTTPPort': int, 'HTTPSPort': int, 'TXGPIO': int, 'RTS_Address': str, "Password": str}
+        parameters = {'LogLocation': str, 'Latitude': float, 'Longitude': float, 'SendRepeat': int, 'UseHttps': bool, 'HTTPPort': int, 'HTTPSPort': int, 'SSLCert': str, 'SSLKey': str, 'TXGPIO': int, 'RTS_Address': str, "Password": str}
         
         self.SetSection("General");
         for key, type in parameters.items():

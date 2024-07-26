@@ -270,53 +270,12 @@ class FlaskAppWrapper(MyLog):
         self.LogDebug("getConfig called, sending: "+json.dumps(obj))
         return obj
 
-    def generate_adhoc_ssl_context(self):
-        """Generates an adhoc SSL context for the development server."""
-        #        crypto = _get_openssl_crypto_module()
-        import tempfile
-        import atexit
-        from random import random
-        
-        cert = crypto.X509()
-        cert.set_serial_number(int(random() * sys.maxsize))
-        cert.gmtime_adj_notBefore(0)
-        cert.gmtime_adj_notAfter(60 * 60 * 24 * 365)
-
-        subject = cert.get_subject()
-        subject.CN = '*'
-        subject.O = 'Dummy Certificate'
-
-        issuer = cert.get_issuer()
-        issuer.CN = 'Untrusted Authority'
-        issuer.O = 'Self-Signed'
-
-        pkey = crypto.PKey()
-        pkey.generate_key(crypto.TYPE_RSA, 2048)
-        cert.set_pubkey(pkey)
-        cert.sign(pkey, 'sha256')
-
-        cert_handle, cert_file = tempfile.mkstemp()
-        pkey_handle, pkey_file = tempfile.mkstemp()
-        atexit.register(os.remove, pkey_file)
-        atexit.register(os.remove, cert_file)
-    
-        os.write(cert_handle, crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
-        os.write(pkey_handle, crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey))
-        os.close(cert_handle)
-        os.close(pkey_handle)
-        # ctx = ssl.SSLContext(ssl.PROTOCOL_TLS)
-        ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-        ctx.load_cert_chain(cert_file, pkey_file)
-        ctx.verify_mode = ssl.CERT_NONE
-        return ctx
-
-
     def run(self):
         if self.config.UseHttps:
             import ssl
-            from OpenSSL import crypto
             self.LogInfo("Starting secure WebServer on Port "+str(self.config.HTTPSPort))
-            self.app.run(host="0.0.0.0", port=self.config.HTTPSPort, threaded = True, ssl_context=self.generate_adhoc_ssl_context(), use_reloader = False, debug = False)
+            ssl_context = (self.config.SSLCert, self.config.SSLKey)
+            self.app.run(host="0.0.0.0", port=self.config.HTTPSPort, threaded = True, ssl_context=ssl_context, use_reloader = False, debug = False)
         else:
             self.LogInfo("Starting WebServer on Port "+str(self.config.HTTPPort))
             self.app.run(host="0.0.0.0", threaded = True, port=self.config.HTTPPort, use_reloader = False, debug = False)
